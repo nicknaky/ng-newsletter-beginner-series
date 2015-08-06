@@ -1,12 +1,28 @@
 var app = angular.module("myApp", []);
 
-app.run(function($rootScope) {
-	$rootScope.name = "Nick Lam";
-});
+app.controller("PlayerController", ["$scope", function($scope) {
+	$scope.playing = false;
+	$scope.audio = document.createElement("audio");
+	$scope.audio.src = "http://samples.mplayerhq.hu/MPEG-4/MPEGSolution_jurassic.mp4";
 
-app.controller("MyController", function($scope) {
-	$scope.person = {
-		name: "Nick's Minion"
+	$scope.play = function() {
+		$scope.audio.play();
+		$scope.playing = true;
 	};
-});
+
+	$scope.stop = function() {
+		$scope.audio.pause();
+		$scope.playing = false;
+	};
+
+	$scope.audio.addEventListener("ended", function() {
+		$scope.$apply(function() {
+			$scope.stop()
+		});
+	});
+}]);
+
+app.controller("RelatedController", ["$scope", function($scope) {
+
+}]);
 
