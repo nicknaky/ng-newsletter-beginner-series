@@ -1,28 +1,53 @@
 var app = angular.module("myApp", []);
 
-app.controller("PlayerController", ["$scope", function($scope) {
-	$scope.playing = false;
-	$scope.audio = document.createElement("audio");
-	$scope.audio.src = "http://samples.mplayerhq.hu/MPEG-4/MPEGSolution_jurassic.mp4";
+var apiKey = "MDIwMDkyNDQ5MDE0Mzg4NDAxMDg5MzI3Nw001";
+var	nprUrl = "http://api.npr.org/query?id=3&fields=title,byline,text,audio,image,pullQuote,relatedLink,all&dataType=story&output=JSON";      
+//            http://api.npr.org/query?id=3&fields=title,byline,text,audio,image,pullQuote,relatedLink,all&dateType=story&output=JSON&apiKey=MDIwMDkyNDQ5MDE0Mzg4NDAxMDg5MzI3Nw001
 
-	$scope.play = function() {
-		$scope.audio.play();
-		$scope.playing = true;
-	};
 
-	$scope.stop = function() {
-		$scope.audio.pause();
-		$scope.playing = false;
-	};
+app.controller("PlayerController", function($scope, $http) {
 
-	$scope.audio.addEventListener("ended", function() {
-		$scope.$apply(function() {
-			$scope.stop()
-		});
+	$http({
+		method: "JSONP",
+		url: nprUrl + "&apiKey=" + apiKey + "&callback=JSON_CALLBACK"
+	}).success(function(data, status) {
+		$scope.programs = data.list.story;
+	}).error(function(data, status) {
+
 	});
-}]);
+});
+
+/*
+app.controller('PlayerController', function($scope, $http) {
+  // Hidden our previous section's content
+  // construct our http request
+  $http({
+    method: 'JSONP',
+    url: nprUrl + '&apiKey=' + apiKey + '&callback=JSON_CALLBACK'
+  }).success(function(data) {
+    // Now we have a list of the stories (data.list.story)
+    // in the data object that the NPR API 
+    // returns in JSON that looks like:
+    // data: { "list": {
+    //   "title": ...
+    //   "story": [
+    //     { "id": ...
+    //       "title": ...
+      $scope.programs = data.list.story;
+  }).error(function(data, status) {
+    // Some error occurred
+  });
+});
+*/
+
 
 app.controller("RelatedController", ["$scope", function($scope) {
 
 }]);
+
+
+
+
+
+
 
