@@ -2,47 +2,35 @@ var app = angular.module("myApp", []);
 
 var apiKey = "MDIwMDkyNDQ5MDE0Mzg4NDAxMDg5MzI3Nw001";
 var	nprUrl = "http://api.npr.org/query?id=3&fields=title,byline,text,audio,image,pullQuote,relatedLink,all&dataType=story&output=JSON";      
-//            http://api.npr.org/query?id=3&fields=title,byline,text,audio,image,pullQuote,relatedLink,all&dateType=story&output=JSON&apiKey=MDIwMDkyNDQ5MDE0Mzg4NDAxMDg5MzI3Nw001&callback=JSON_CALLBACK
-//url: nprUrl + "&apiKey=" + apiKey + "&callback=JSON_CALLBACK"
+
 
 app.controller("PlayerController", function($scope, $http) {
 
-	$http({
-		method: "GET",
-		
-		url: nprUrl + "&apiKey=" + apiKey + "&callback=JSON_CALLBACK"
-	}).success(function(data, status) {
-		$scope.programs = data;
-	}).error(function(data, status) {
-
-	});
-});
-
-/*
-app.controller('PlayerController', function($scope, $http) {
-  // Hidden our previous section's content
-  // construct our http request
   $http({
-    method: 'JSONP',
-    url: nprUrl + '&apiKey=' + apiKey + '&callback=JSON_CALLBACK'
-  }).success(function(data) {
-    // Now we have a list of the stories (data.list.story)
-    // in the data object that the NPR API 
-    // returns in JSON that looks like:
-    // data: { "list": {
-    //   "title": ...
-    //   "story": [
-    //     { "id": ...
-    //       "title": ...
-      $scope.programs = data.list.story;
-  }).error(function(data, status) {
-    // Some error occurred
+    method: "JSONP",
+    
+    url: nprUrl + "&apiKey=" + apiKey + "&callback=JSON_CALLBACK"
+  }).then(function(file, status) {
+    var url = nprUrl + "&apiKey=" + apiKey + "&callback=JSON_CALLBACK";
+    
+
+    $scope.programs = JSON.stringify(file.data.list.story);
+    console.log(file);
+    
+
+    //$scope.programs = JSON.stringify(data);
+    //console.log($scope.programs);
+  }, function(data, status) {
+
   });
 });
-*/
 
 
-app.controller("RelatedController", ["$scope", function($scope) {
+
+
+
+app.controller("RelatedController", ["$scope", "$http", function($scope, $http) {
+
 
 }]);
 
