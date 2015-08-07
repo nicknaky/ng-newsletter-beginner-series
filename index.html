@@ -1,20 +1,21 @@
 <!doctype HTML>
 
-<html ng-app="myApp">
+<html>
 	<head>
 
-		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+		<script src="js/angular.min.js"></script>
 		<script src="js/main.js"></script>
 
 
 	</head>
 
-	<body>
-		
+	<body ng-app="myApp">
 		<div ng-controller="PlayerController">
-			{{programs}}
+			<ul id="programs_list" class="">
+				<li ng-repeat="program in programs">
+					<span npr-link play="play(program)" ng-model="program"></span>
+				</li>
+			</ul>
 		</div>
-
-
 	</body>
 </html>
