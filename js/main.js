@@ -3,48 +3,6 @@ var app = angular.module("myApp", []);
 var apiKey = "MDIwMDkyNDQ5MDE0Mzg4NDAxMDg5MzI3Nw001";
 var	nprUrl = "http://api.npr.org/query?id=3&fields=title,byline,text,audio,image,pullQuote,relatedLink,all&dataType=story&output=JSON";      
 
-
-
-app.factory("githubService", ["$http", function($http) {
-    
-    var doRequest = function(username, path) {
-      return $http({
-        method: "JSONP",
-        url: "https://api.github.com/users/" + username + "/" + path + "?callback=JSON_CALLBACK"
-      });
-    }
-
-
-    return {
-      events: function(username) { return doRequest(username, "events"); },
-    };
-}]);
-
-
-app.controller('ServiceController', ['$scope', "$timeout", 'githubService',
-    function($scope, $timeout, githubService) {
-      $scope.$watch('username', function(newUsername) {
-        githubService.events(newUsername)
-          .then(function(response) {
-            $scope.events = response.data.data;
-          });
-      });
-      var timeout;
-      $scope.$watch("username", function(newVal) {
-        if (newVal) {
-          if (timeout) $timeout.cancel(timeout);
-          timeout = $timeout(function() {
-            githubService.events(newVal)
-            .then(function(dat, status) {
-              $scope.events = response.data.data;
-            });
-          }, 350);
-        }
-      });
-}]);
-
-
-
 app.directive("nprLink", function() {
   return {
     restrict: 'EA',
@@ -52,7 +10,7 @@ app.directive("nprLink", function() {
     replace: true,
     scope: {
       ngModel: '=',
-      play: '&'
+      player: '='
     },
     templateUrl: 'views/nprListItem.html',
     link: function(scope, ele, attr) {
@@ -61,42 +19,85 @@ app.directive("nprLink", function() {
   }
 });
 
-app.controller("PlayerController", function($scope, $http) {
-  var audio = document.createElement("audio");
-  $scope.audio = audio;
+app.factory("audioService", ["$document", function($document) {
+  var audio = $document[0].createElement("audio");
+  return audio;
+}]);
 
-  $http({
-    method: "JSONP",
-    url: nprUrl + "&apiKey=" + apiKey + "&callback=JSON_CALLBACK"
-  }).then(function(response, status) {
-    
-    console.log(response);
-    $scope.programs = response.data.list.story;    
-  }, function(response, status) {
-    console.log('error', status, response);
+app.factory("playerService", ["audioService", "$rootScope", function(audioService, $rootScope) {
+  var player = {
+    playing: false,
+    current: null,
+    ready: false,
+
+    play: function(program) {
+      if (player.playing) player.stop();  //If we are already playing, then stop current playback
+      var url = program.audio[0].format.mp4.$text;  //Structure from npr API
+      player.current = program;
+      audioService.src = url;
+      audioService.play();
+      player.playing = true;
+    },
+
+    stop: function(program) {
+      if (player.playing) {
+        audioService.pause(); //Stop playback
+        //Clear state of player
+        player.ready = player.playing = false;
+        player.current = null;
+      }
+    },
+
+    currentTime: function() {
+      return audioService.currentTime;
+    },
+
+    currentDuration: function() {
+      return parseInt(audioService.duration);
+    }
+  };
+
+  audioService.addEventListener("canplay", function(evt) {
+    $rootScope.$apply(function() {
+      player.ready = true;
+    });
   });
 
-  $scope.play = function(program) {
-    if ($scope.playing) {
-      $scope.audio.pause();
+  audioService.addEventListener("timeupdate", function(evt) {
+    $rootScope.$apply(function() {
+      player.progress = player.currentTime();
+      player.progress_percent = player.progress / player.currentDuration();
+    });
+  });
 
-    }
-    var url = program.audio[0].format.mp4.$text;
-    audio.src = url;
-    audio.play();
-
-    $scope.playing = true;
-  } 
-});
-
-
-
-
-
-app.controller("RelatedController", ["$scope", "$http", function($scope, $http) {
-
-
+  audioService.addEventListener("ended", function() {
+    $rootScope.$apply(player.stop());
+  });
+  return player;
 }]);
+
+app.factory("nprService", ["$http", function($http) {
+  var doRequest = function(apiKey) {
+    return $http({
+      method: "JSONP",
+      url: nprUrl + "&apiKey=" + apiKey + "&callback=JSON_CALLBACK"
+    });
+  };
+  return {
+    programs: function(apiKey) {
+      return doRequest(apiKey);
+    }
+  };
+}]);
+
+app.controller("PlayerController", ["$scope", "nprService", "playerService", function($scope, nprService, playerService) {
+  $scope.player = playerService;
+  nprService.programs(apiKey).then(function(response) {
+    $scope.programs = response.data.list.story;
+  });
+}]);
+
+
 
 
 

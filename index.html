@@ -13,15 +13,10 @@
 		<div ng-controller="PlayerController">
 			<ul id="programs_list" class="">
 				<li ng-repeat="program in programs">
-					<span npr-link play="play(program)" ng-model="program"></span>
+					<span npr-link player="player" ng-model="program"></span>
 				</li>
 			</ul>
 		</div>
 
-		<div ng-controller="ServiceController">
-			<label for="username">Type in a GitHub username</label>
-			<input type="text" ng-model="username" placeholder="Enter a GitHub username, like auser"/>
-			<pre ng-show="username">{{events}}</pre>
-		</div>
 	</body>
 </html>
